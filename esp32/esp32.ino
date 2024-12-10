@@ -25,30 +25,43 @@
 #define TXD2 4
 
 #include "WiFi.h"
-// #include "PubSubClient.h"
+#include <ArduinoMqttClient.h>
 #include "connection.h"
 
-/*
 WiFiClient espClient;
-PubSubClient mqttClient(espClient);
-*/
+MqttClient mqttClient(espClient);
+
+const char broker[] = "193.147.79.118";
+int port = 21883;
+const char topic[]  = "/SETR/2024/9/";
+
+String teamName = "murcianosfuriosos";
+String teamID = "9";
+
+void advice_arduino(String msg) {
+  while (1) {
+    if (Serial2.available() != 0) {
+      while (Serial2.available() > 0) {
+        Serial2.read();
+      }
+      break;
+    } else {
+      Serial2.print(msg);
+    }
+  }
+}
 
 void initWiFi() {
-
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
-  Serial.print("Connecting to WiFi ..");
+  WiFi.begin(sshouse, password);
+  // Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
     delay(1000);
   }
 
-  // Serial.print("IP Address: ");
-  // Serial.println(WiFi.localIP());
-  // Serial.print("RRSI: ");
-  // Serial.println(WiFi.RSSI());
-
   // Wait the ACK of the ARDUINO, while we send the connect confirmation
+  /*
   while (1) {
     if (Serial2.available() != 0) {
       break;
@@ -56,28 +69,69 @@ void initWiFi() {
       Serial2.print("{ 'wifi': " + String(1) + " }");
     }
   }
+  */
+  advice_arduino("{ 'wifi': " + String(1) + " }");
 }
 
-/*
-void connectMQTT() {
-  mqttClient.setServer(mqtt_server, mqtt_port);
-  while (!mqttClient.connected()) {
-    if (mqttClient.connect(client_id, mqtt_user, mqtt_password)) {
-      break;
+void initMQTT() {
+  while (1) {
+    if (!mqttClient.connect(broker, port)) {
+      Serial.print('.');
+      delay(1000);
     }
+    else
+      break;
+  }
+  advice_arduino("{ 'mqtt': " + String(1) + " }");
+}
+
+String get_json(String action, int time, int dist, float value) {
+  if (time == -1 && dist == -1 && value == -1.00) { // The json msg contain just the principal info
+    return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + ", \"action\" : " + action + "}";
+
+  } else if (time != -1 && dist == -1 && value == -1.00) { // The json msg contain just the dist without the time
+    return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + ", \"action\" : " + action + ", \"time\" : " + String(time) + "}";
+
+  } else if (time == -1 && dist != -1 && value == -1.00) { // The json msg contain just the time without the dist
+    return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + ", \"action\" : " + action + ", \"distance\" : " + String(dist) + "}";
+
+  } else if (time == -1 && dist == -1 && value != -1.00) {
+    return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + ", \"action\" : " + action + ", \"value\" : " + String(value) + "}";
+
+  } else {
+    return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + "}";
   }
 }
-*/
 
 void setup() {
-
   Serial.begin(9600);
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
   initWiFi();
-
+  initMQTT();
 }
 
 void loop() {
+  mqttClient.poll();
   Serial.println("ESP32 LOOP");
+
+  mqttClient.beginMessage(topic);
+  mqttClient.print(get_json("START_LAP", -1, -1, -1.00));
+  mqttClient.endMessage();
+
+  mqttClient.beginMessage(topic);
+  mqttClient.print(get_json("START_LAP", 50, -1, -1.00));
+  mqttClient.endMessage();
+
+  mqttClient.beginMessage(topic);
+  mqttClient.print(get_json("START_LAP", -1, 100, -1.00));
+  mqttClient.endMessage();
+
+  mqttClient.beginMessage(topic);
+  mqttClient.print(get_json("START_LAP", -1, -1, 25.00));
+  mqttClient.endMessage();
+
+  mqttClient.beginMessage(topic);
+  mqttClient.print(get_json("START_LAP", 1, 100, 1.00));
+  mqttClient.endMessage();
 }
 
