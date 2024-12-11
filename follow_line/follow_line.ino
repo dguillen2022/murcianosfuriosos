@@ -112,7 +112,6 @@ void setup() {
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, HIGH);
   digitalWrite(PIN_Motor_BIN_1, HIGH);
-  
 }
 
 void loop() {
@@ -133,9 +132,6 @@ void loop() {
   float dist = ultraSound->getDistance();
   Serial.print("Ultrasound: ");
   Serial.println(dist);
-
-  int r=255,g=0,b=0;
-  FastLED.showColor(Color(r, g, b));
 
   if (left > 200 || mid > 200 || right > 200) {
     int base_speed = 80; // 80 100 140 in no close turns
