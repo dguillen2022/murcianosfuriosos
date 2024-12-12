@@ -9,6 +9,28 @@
 
 #define DHTTYPE DHT11
 
+class MessageThread : public Thread {
+public:
+  String message;
+
+  MessageThread() : Thread() {
+  }
+
+  bool shouldRun(unsigned long time) {
+    return Thread::shouldRun(time);
+  }
+
+  void run() {
+    Thread::run();
+    Serial.print("{ 'ping': " + String(millis()) + " }");
+  }
+
+  void setMessage(String _message) {
+    message = _message;
+  }
+};
+
+
 class LedThread: public Thread {
 
 public:

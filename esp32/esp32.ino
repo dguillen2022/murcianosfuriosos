@@ -104,6 +104,31 @@ String get_json(String action, int time, int dist, float value) {
   }
 }
 
+String extractValue(String input, String key) {
+    input.replace("'", "\"");
+    key = "\"" + key + "\":";
+
+    int keyIdx = input.indexOf(key);
+    if (keyIdx == -1) {
+        return "";
+    }
+    keyIdx += key.length();
+
+    int valueEndIdx = input.indexOf(',', keyIdx);
+    if (valueEndIdx == -1) {
+        valueEndIdx = input.indexOf('}', keyIdx);
+    }
+    if (valueEndIdx == -1) {
+        return "";
+    }
+
+    String value = input.substring(keyIdx, valueEndIdx);
+    value.trim();
+    return value;
+}
+
+
+
 void setup() {
   Serial.begin(9600);
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
@@ -111,28 +136,53 @@ void setup() {
   initMQTT();
 }
 
+String recvBuff = "";
+
 void loop() {
   mqttClient.poll();
-  Serial.println("ESP32 LOOP");
+  // Serial.println("ESP32 LOOP");
 
-  mqttClient.beginMessage(topic);
-  mqttClient.print(get_json("START_LAP", -1, -1, -1.00));
-  mqttClient.endMessage();
+  if (Serial2.available() > 0) {
+    char c = Serial2.read();
+    recvBuff += c;
+    // Serial.println(recvBuff);
+    if (c == '}')  {
+      String endlValue = extractValue(recvBuff, "endl");
+      if (endlValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("END_LAP", endlValue.toInt(), -1, -1.00));
+        mqttClient.endMessage();
+      }
 
-  mqttClient.beginMessage(topic);
-  mqttClient.print(get_json("START_LAP", 50, -1, -1.00));
-  mqttClient.endMessage();
+      String pingValue = extractValue(recvBuff, "ping");
+      if (pingValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("PING", pingValue.toInt(), -1, -1.00));
+        mqttClient.endMessage();
+      }
 
-  mqttClient.beginMessage(topic);
-  mqttClient.print(get_json("START_LAP", -1, 100, -1.00));
-  mqttClient.endMessage();
+      String strlValue = extractValue(recvBuff, "strl");
+      if (strlValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("START_LAP", -1, -1, -1.00));
+        mqttClient.endMessage();
+      }
 
-  mqttClient.beginMessage(topic);
-  mqttClient.print(get_json("START_LAP", -1, -1, 25.00));
-  mqttClient.endMessage();
+      String lineValue = extractValue(recvBuff, "line");
+      if (lineValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("LINE_LOST", -1, -1, -1.00));
+        mqttClient.endMessage();
+      }
 
-  mqttClient.beginMessage(topic);
-  mqttClient.print(get_json("START_LAP", 1, 100, 1.00));
-  mqttClient.endMessage();
+      String obsValue = extractValue(recvBuff, "obst");
+      if (obsValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("OBSTACLE_DETECTED", -1, obsValue.toInt(), -1.00));
+        mqttClient.endMessage();
+      }
+      recvBuff = "";
+    }
+  }
 }
 

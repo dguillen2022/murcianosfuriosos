@@ -29,12 +29,16 @@
 CRGB leds[NUM_LEDS];
 ThreadController controller = ThreadController();
 UltraSound* ultraSound;
+MessageThread* msg_sender;
 
 int ACK_COUNTER = 1;
 
 int left_speed = 0;
 int right_speed = 0;
 int last_error = 0;
+
+int end_ = 0;
+int start_time_ = 0;
 
 uint32_t Color(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -101,6 +105,11 @@ void setup() {
   ultraSound = new UltraSound(TRIG_PIN, ECHO_PIN);
   ultraSound->setInterval(12);
 
+  msg_sender = new MessageThread();
+  msg_sender->setInterval(4000);
+  msg_sender->run();
+
+  controller.add(msg_sender);
   controller.add(ultraSound);
 
   pinMode(PIN_Motor_AIN_1, OUTPUT);
@@ -113,20 +122,28 @@ void setup() {
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, HIGH);
   digitalWrite(PIN_Motor_BIN_1, HIGH);
+
+  Serial.print("{ 'strl': " + String(1) + " }");
+  start_time_ = millis();
 }
 
 void loop() {
   controller.run();
-  // put your main code here, to run repeatedly:
+
   int left = analogRead(PIN_ITR20001_LEFT);
   int mid = analogRead(PIN_ITR20001_MIDDLE);
   int right = analogRead(PIN_ITR20001_RIGHT);
 
   float dist = ultraSound->getDistance();
 
-  if (ultraSound->getDistance() < 8) {
+  if (ultraSound->getDistance() < 8 && ultraSound->getDistance() > 1) {
     analogWrite(PIN_Motor_PWMA, 0);
     analogWrite(PIN_Motor_PWMB, 0);
+    if (end_ == 0) {
+      Serial.print("{ 'endl': " + String(millis() - start_time_) + " }");
+      Serial.print("{ 'obst': " + String(ultraSound->getDistance()) + " }");
+      end_ = 1;
+    }
   } else {
     if (left > 200 || mid > 200 || right > 200) {
       FastLED.showColor(Color(0, 255, 0));
@@ -139,13 +156,14 @@ void loop() {
 
       last_error = error;
 
-      left_speed = constrain(left_speed, 0, 130);
-      right_speed = constrain(right_speed, 0, 130);
+      left_speed = constrain(left_speed, 0, 170); // 130 perfect 150 -- 170 risky and 180 200 more risky
+      right_speed = constrain(right_speed, 0, 170); // 130 150 -- 170 risky and 180 200 more risky
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
     } else if (left < 200 && mid < 200 && right < 200) {
       FastLED.showColor(Color(255, 0, 0));
+      Serial.print("{ 'line': " + String(1) + " }");
       if (last_error < 0) { // derecha
         analogWrite(PIN_Motor_PWMA, 200);
         analogWrite(PIN_Motor_PWMB, 0);
