@@ -19,8 +19,8 @@
 #define PIN_Motor_BIN_1 8
 #define PIN_Motor_PWMB 6
 
-#define KP 0.24 // Last 0.12 0.18 -- Perfect: 0.24
-#define KD 0.04 // Last 0.04 -- Perfect: 0.04
+#define KP 0.24 // Last 0.12 0.18 -- Perfect: 0.24 in class 0.01 another 0.0045
+#define KD 0.04 // Last 0.04 -- Perfect: 0.04 in class 0.08 another 0.053
 
 #define VEL_BASE 60
 #define MAX_VEL 60
@@ -32,7 +32,8 @@ UltraSound* ultraSound;
 
 int ACK_COUNTER = 1;
 
-int vel = 60;
+int left_speed = 0;
+int right_speed = 0;
 int last_error = 0;
 
 uint32_t Color(uint8_t r, uint8_t g, uint8_t b)
@@ -98,7 +99,7 @@ void setup() {
   FastLED.showColor(Color(0, 255, 0));
 
   ultraSound = new UltraSound(TRIG_PIN, ECHO_PIN);
-  ultraSound->setInterval(100);
+  ultraSound->setInterval(12);
 
   controller.add(ultraSound);
 
@@ -121,35 +122,35 @@ void loop() {
   int mid = analogRead(PIN_ITR20001_MIDDLE);
   int right = analogRead(PIN_ITR20001_RIGHT);
 
-  Serial.print("Left: ");
-  Serial.println(left);
-  Serial.print("Mid: ");
-  Serial.println(mid);
-  Serial.print("Right: ");
-  Serial.println(right);
-  //delay(1000);
-
   float dist = ultraSound->getDistance();
-  Serial.print("Ultrasound: ");
-  Serial.println(dist);
 
-  if (left > 200 || mid > 200 || right > 200) {
-    int base_speed = 80; // 80 100 140 in no close turns
-    int error = right-left;
-    int correction = KP * error + KD * (error - last_error);
+  if (ultraSound->getDistance() < 8) {
+    analogWrite(PIN_Motor_PWMA, 0);
+    analogWrite(PIN_Motor_PWMB, 0);
+  } else {
+    if (left > 200 || mid > 200 || right > 200) {
+      int base_speed = 100; // 80 100 140 in no close turns
+      int error = right-left;
+      int correction = KP * error + KD * (error - last_error);
 
-    int left_speed = base_speed - correction;
-    int right_speed = base_speed + correction;
+      left_speed = base_speed + correction;
+      right_speed = base_speed - correction;
 
-    left_speed = constrain(left_speed, 0, 130);
-    right_speed = constrain(right_speed, 0, 130);
+      last_error = error;
 
-    Serial.print(left_speed);
-    Serial.print("\n");
-    Serial.print(right_speed);
-    Serial.print("\n");
+      left_speed = constrain(left_speed, 0, 130);
+      right_speed = constrain(right_speed, 0, 130);
 
-    analogWrite(PIN_Motor_PWMA, left_speed);
-    analogWrite(PIN_Motor_PWMB, right_speed);
+      analogWrite(PIN_Motor_PWMA, right_speed);
+      analogWrite(PIN_Motor_PWMB, left_speed);
+    } else if (left < 200 && mid < 200 && right < 200) {
+      if (last_error < 0) { // derecha
+        analogWrite(PIN_Motor_PWMA, 200);
+        analogWrite(PIN_Motor_PWMB, 0);
+      } else { // izquierda
+        analogWrite(PIN_Motor_PWMA, 0);
+        analogWrite(PIN_Motor_PWMB, 200);
+      }
+    }
   }
 }

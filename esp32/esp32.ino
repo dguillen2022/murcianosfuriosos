@@ -54,6 +54,7 @@ void advice_arduino(String msg) {
 void initWiFi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(sshouse, password);
+  // WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
   // Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
