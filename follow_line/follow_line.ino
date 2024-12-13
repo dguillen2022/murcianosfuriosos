@@ -37,6 +37,7 @@ int left_speed = 0;
 int right_speed = 0;
 int last_error = 0;
 
+int start_ = 1;
 int end_ = 0;
 int start_time_ = 0;
 
@@ -123,12 +124,17 @@ void setup() {
   digitalWrite(PIN_Motor_AIN_1, HIGH);
   digitalWrite(PIN_Motor_BIN_1, HIGH);
 
-  Serial.print("{ 'strl': " + String(1) + " }");
   start_time_ = millis();
 }
 
 void loop() {
   controller.run();
+
+  if (start_ == 0) {
+    Serial.print("{ 'strl': " + String(ACK_COUNTER) + " }");
+    start_time_ = millis();
+    start_ = 1;
+  }
 
   int left = analogRead(PIN_ITR20001_LEFT);
   int mid = analogRead(PIN_ITR20001_MIDDLE);
@@ -142,10 +148,11 @@ void loop() {
     if (end_ == 0) {
       Serial.print("{ 'endl': " + String(millis() - start_time_) + " }");
       Serial.print("{ 'obst': " + String(ultraSound->getDistance()) + " }");
+      controller.remove(msg_sender);
       end_ = 1;
     }
   } else {
-    if (left > 200 || mid > 200 || right > 200) {
+    if (left > 400 || mid > 400 || right > 400) {
       FastLED.showColor(Color(0, 255, 0));
       int base_speed = 250;
       int error = right-left;
@@ -161,9 +168,9 @@ void loop() {
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
-    } else if (left < 200 && mid < 200 && right < 200) {
+    } else if (left < 400 && mid < 400 && right < 400) {
       FastLED.showColor(Color(255, 0, 0));
-      Serial.print("{ 'line': " + String(1) + " }");
+      Serial.print("{ 'line': " + String(1) + " }"); // Linea perdida
       if (last_error < 0) { // derecha
         analogWrite(PIN_Motor_PWMA, 200);
         analogWrite(PIN_Motor_PWMB, 0);
@@ -172,5 +179,9 @@ void loop() {
         analogWrite(PIN_Motor_PWMB, 200);
       }
     }
+    if (end_ == 1) {
+      start_ = 0;
+    }
+    end_ = 0;
   }
 }

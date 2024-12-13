@@ -53,8 +53,8 @@ void advice_arduino(String msg) {
 
 void initWiFi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(sshouse, password);
-  // WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
+  // WiFi.begin(sshouse, password);
+  WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
   // Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
@@ -134,6 +134,9 @@ void setup() {
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
   initWiFi();
   initMQTT();
+  mqttClient.beginMessage(topic);
+  mqttClient.print(get_json("START_LAP", -1, -1, -1.00));
+  mqttClient.endMessage();
 }
 
 String recvBuff = "";
