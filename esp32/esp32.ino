@@ -53,8 +53,8 @@ void advice_arduino(String msg) {
 
 void initWiFi() {
   WiFi.mode(WIFI_STA);
-  // WiFi.begin(sshouse, password);
-  WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
+  WiFi.begin(sshouse, password);
+  // WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
   // Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
@@ -62,15 +62,6 @@ void initWiFi() {
   }
 
   // Wait the ACK of the ARDUINO, while we send the connect confirmation
-  /*
-  while (1) {
-    if (Serial2.available() != 0) {
-      break;
-    } else {
-      Serial2.print("{ 'wifi': " + String(1) + " }");
-    }
-  }
-  */
   advice_arduino("{ 'wifi': " + String(1) + " }");
 }
 
@@ -90,13 +81,13 @@ String get_json(String action, int time, int dist, float value) {
   if (time == -1 && dist == -1 && value == -1.00) { // The json msg contain just the principal info
     return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + ", \"action\" : " + action + "}";
 
-  } else if (time != -1 && dist == -1 && value == -1.00) { // The json msg contain just the dist without the time
+  } else if (time != -1 && dist == -1 && value == -1.00) { // The json msg contain just the time without the dist
     return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + ", \"action\" : " + action + ", \"time\" : " + String(time) + "}";
 
-  } else if (time == -1 && dist != -1 && value == -1.00) { // The json msg contain just the time without the dist
+  } else if (time == -1 && dist != -1 && value == -1.00) { // The json msg contain just the dist without the time
     return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + ", \"action\" : " + action + ", \"distance\" : " + String(dist) + "}";
 
-  } else if (time == -1 && dist == -1 && value != -1.00) {
+  } else if (time == -1 && dist == -1 && value != -1.00) { // The json msg contain just the value without the time or the dist
     return "{ \"team_name\" : " + String(teamName) + ", \"id\" : " + String(teamID) + ", \"action\" : " + action + ", \"value\" : " + String(value) + "}";
 
   } else {
@@ -143,12 +134,10 @@ String recvBuff = "";
 
 void loop() {
   mqttClient.poll();
-  // Serial.println("ESP32 LOOP");
 
   if (Serial2.available() > 0) {
     char c = Serial2.read();
     recvBuff += c;
-    // Serial.println(recvBuff);
     if (c == '}')  {
       String endlValue = extractValue(recvBuff, "endl");
       if (endlValue != "") {

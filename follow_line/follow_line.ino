@@ -14,10 +14,10 @@
 #define PIN_Motor_STBY 3
 
 #define PIN_Motor_AIN_1 7
-#define PIN_Motor_PWMA 5
+#define PIN_Motor_PWMA 5 // Right motor
 
 #define PIN_Motor_BIN_1 8
-#define PIN_Motor_PWMB 6
+#define PIN_Motor_PWMB 6 // Left motor
 
 #define KP 0.24 // Last 0.12 0.18 -- Perfect: 0.24 in class 0.01 another 0.0045
 #define KD 0.012 // Last 0.04 -- Perfect: 0.04 in class 0.08 another 0.053
@@ -25,6 +25,8 @@
 #define VEL_BASE 60
 #define MAX_VEL 60
 #define MIN_VEL 30
+
+#define VALUE_LINE 200 // House 200 -- Labs 400
 
 CRGB leds[NUM_LEDS];
 ThreadController controller = ThreadController();
@@ -91,7 +93,6 @@ void ackMQTT() {
 }
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
 
   FastLED.addLeds<NEOPIXEL, PIN_RBGLED>(leds, NUM_LEDS);
@@ -142,7 +143,7 @@ void loop() {
 
   float dist = ultraSound->getDistance();
 
-  if (ultraSound->getDistance() < 8 && ultraSound->getDistance() > 1) {
+  if (ultraSound->getDistance() < 12 && ultraSound->getDistance() > 1) {
     analogWrite(PIN_Motor_PWMA, 0);
     analogWrite(PIN_Motor_PWMB, 0);
     if (end_ == 0) {
@@ -152,7 +153,7 @@ void loop() {
       end_ = 1;
     }
   } else {
-    if (left > 400 || mid > 400 || right > 400) {
+    if (left > VALUE_LINE || mid > VALUE_LINE || right > VALUE_LINE) { // In line movements
       FastLED.showColor(Color(0, 255, 0));
       int base_speed = 250;
       int error = right-left;
@@ -168,13 +169,13 @@ void loop() {
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
-    } else if (left < 400 && mid < 400 && right < 400) {
+    } else if (left < VALUE_LINE && mid < VALUE_LINE && right < VALUE_LINE) { // Lost line movements
       FastLED.showColor(Color(255, 0, 0));
-      Serial.print("{ 'line': " + String(1) + " }"); // Linea perdida
-      if (last_error < 0) { // derecha
+      Serial.print("{ 'line': " + String(1) + " }"); // Send to the ESP32 Lost line
+      if (last_error < 0) { // turn right
         analogWrite(PIN_Motor_PWMA, 200);
         analogWrite(PIN_Motor_PWMB, 0);
-      } else { // izquierda
+      } else { // turn left
         analogWrite(PIN_Motor_PWMA, 0);
         analogWrite(PIN_Motor_PWMB, 200);
       }
