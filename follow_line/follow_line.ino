@@ -164,8 +164,8 @@ void loop() {
 
       last_error = error;
 
-      left_speed = constrain(left_speed, 0, 170); // 130 perfect 150 -- 170 risky and 180 200 more risky
-      right_speed = constrain(right_speed, 0, 170); // 130 150 -- 170 risky and 180 200 more risky
+      left_speed = constrain(left_speed, 0, 178); // 130 perfect 150 -- 170 risky and 180 200 more risky
+      right_speed = constrain(right_speed, 0, 178); // 130 150 -- 170 risky and 180 200 more risky
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
