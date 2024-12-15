@@ -178,6 +178,20 @@ void loop() {
         mqttClient.print(get_json("OBSTACLE_DETECTED", -1, obsValue.toInt(), -1.00));
         mqttClient.endMessage();
       }
+
+      String lostValue = extractValue(recvBuff, "lost");
+      if (lostValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("INIT_LINE_SEARCH", -1, -1, -1.00));
+        mqttClient.endMessage();
+      }
+
+      String findValue = extractValue(recvBuff, "find");
+      if (findValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("STOP_LINE_SEARCH", -1, -1, -1.00));
+        mqttClient.endMessage();
+      }
       recvBuff = "";
     }
   }

@@ -41,6 +41,7 @@ int last_error = 0;
 
 int start_ = 1;
 int end_ = 0;
+int lost_line_ = 0;
 unsigned long start_time_ = 0;
 
 uint32_t Color(uint8_t r, uint8_t g, uint8_t b)
@@ -154,6 +155,10 @@ void loop() {
   } else {
     if (left > VALUE_LINE || mid > VALUE_LINE || right > VALUE_LINE) { // In line movements
       FastLED.showColor(Color(0, 255, 0));
+      if (lost_line_ == 1) {
+        Serial.print("{ 'find': " + String(1) + " }");
+        lost_line_ = 0;
+      }
       int base_speed = 250;
       int error = right-left;
       int correction = KP * error + KD * (error - last_error);
@@ -163,13 +168,17 @@ void loop() {
 
       last_error = error;
 
-      left_speed = constrain(left_speed, 0, 166); // 130 perfect 150 -- 170 risky and 180 200 more risky -- 160 -> 11347 | 166 -> 11222/10973 time
-      right_speed = constrain(right_speed, 0, 166); // 130 150 -- 170 risky and 180 200 more risky
+      left_speed = constrain(left_speed, 0, 168); // 130 perfect 150 -- 170 risky and 180 200 more risky -- 160 -> 11347 | 166 -> 11222/10973 time
+      right_speed = constrain(right_speed, 0, 168); // 130 150 -- 170 risky and 180 200 more risky
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
     } else if (left < VALUE_LINE && mid < VALUE_LINE && right < VALUE_LINE) { // Lost line movements
       FastLED.showColor(Color(255, 0, 0));
+      if (lost_line_ == 0) {
+        Serial.print("{ 'lost': " + String(1) + " }");
+        lost_line_ = 1;
+      }
       Serial.print("{ 'line': " + String(1) + " }"); // Send to the ESP32 Lost line
       if (last_error < 0) { // turn right
         analogWrite(PIN_Motor_PWMA, 200);
