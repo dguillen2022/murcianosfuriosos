@@ -125,8 +125,13 @@ void setup() {
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
   initWiFi();
   initMQTT();
+
   mqttClient.beginMessage(topic);
   mqttClient.print(get_json("START_LAP", -1, -1, -1.00));
+  mqttClient.endMessage();
+
+  mqttClient.beginMessage(topic);
+  mqttClient.print(get_json("PING", 0, -1, -1.00));
   mqttClient.endMessage();
 }
 

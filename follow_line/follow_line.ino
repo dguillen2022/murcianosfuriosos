@@ -41,7 +41,7 @@ int last_error = 0;
 
 int start_ = 1;
 int end_ = 0;
-int start_time_ = 0;
+unsigned long start_time_ = 0;
 
 uint32_t Color(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -108,11 +108,8 @@ void setup() {
   ultraSound->setInterval(12);
 
   msg_sender = new MessageThread();
+  msg_sender->setStartTime(millis());
   msg_sender->setInterval(4000);
-  msg_sender->run();
-
-  controller.add(msg_sender);
-  controller.add(ultraSound);
 
   pinMode(PIN_Motor_AIN_1, OUTPUT);
   pinMode(PIN_Motor_BIN_1, OUTPUT);
@@ -126,6 +123,9 @@ void setup() {
   digitalWrite(PIN_Motor_BIN_1, HIGH);
 
   start_time_ = millis();
+  msg_sender->run();
+  controller.add(msg_sender);
+  controller.add(ultraSound);
 }
 
 void loop() {
@@ -181,6 +181,8 @@ void loop() {
       }
     }
     if (end_ == 1) {
+      msg_sender->setStartTime(millis());
+      controller.add(msg_sender);
       start_ = 0;
     }
     end_ = 0;

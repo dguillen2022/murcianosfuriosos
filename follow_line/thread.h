@@ -2,16 +2,13 @@
 #define THREAD_H
 
 #include <Thread.h>
-#include <DHT.h>
-#include <avr/wdt.h>
 #include <ThreadController.h>
 #include <StaticThreadController.h>
-
-#define DHTTYPE DHT11
 
 class MessageThread : public Thread {
 public:
   String message;
+  unsigned long startTime;
 
   MessageThread() : Thread() {
   }
@@ -22,74 +19,11 @@ public:
 
   void run() {
     Thread::run();
-    Serial.print("{ 'ping': " + String(millis()) + " }");
+    Serial.print("{ 'ping': " + String(millis() - startTime) + " }");
   }
 
-  void setMessage(String _message) {
-    message = _message;
-  }
-};
-
-
-class LedThread: public Thread {
-
-public:
-  int pin, counter;
-  bool state;
-
-  LedThread(int _pin): Thread() {
-    pin = _pin;
-    state = true;
-    counter = 0;
-    pinMode(pin, OUTPUT);
-  }
-
-  bool shouldRun(unsigned long time){
-    return Thread::shouldRun(time);
-  }
-
-  void run(){
-    Thread::run();
-    digitalWrite(pin, state ? HIGH : LOW);
-    counter = (state == LOW) ? counter + 1 : counter;
-    state = !state;
-  }
-
-  int getCounter() {
-    return counter;
-  }
-
-  void resetCounter() {
-    counter = 0;
-  }
-};
-
-class IncrementLedThread : public Thread {
-
-public:
-  int pin;
-  int brightness;
-  unsigned long time_;
-  
-  IncrementLedThread(int _pin) : Thread() {
-    pin = _pin;
-    brightness = 0;
-    pinMode(pin, OUTPUT);
-  }
-
-  bool shouldRun(unsigned long time) {
-    return Thread::shouldRun(time);
-  }
-
-  void run() {
-    Thread::run();
-    brightness = min(brightness + 5, 255);
-    analogWrite(pin, brightness);
-  }
-
-  void resetBrightness() {
-    brightness = 0;
-    analogWrite(pin, brightness);
+  void setStartTime(unsigned long time) {
+    startTime = time;
   }
 };
 
@@ -133,36 +67,6 @@ public:
 
   void resetDistance() {
     distance = 0;
-  }
-};
-
-class Dht11: public Thread {
-
-public:
-  float humdity, temp;
-  DHT *dht;
-
-  Dht11(int dht_pin): Thread() {
-    dht = new DHT(dht_pin, DHTTYPE);
-    dht->begin();
-  }
-
-  bool shouldRun(unsigned long time){
-    return Thread::shouldRun(time);
-  }
-
-  void run(){
-    Thread::run();
-    humdity = dht->readHumidity();
-    temp = dht->readTemperature();
-  }
-
-  float getHumidity() {
-    return humdity;
-  }
-
-  float getTemperature() {
-    return temp;
   }
 };
 
