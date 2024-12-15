@@ -123,7 +123,6 @@ void setup() {
   digitalWrite(PIN_Motor_BIN_1, HIGH);
 
   start_time_ = millis();
-  msg_sender->run();
   controller.add(msg_sender);
   controller.add(ultraSound);
 }
@@ -164,8 +163,8 @@ void loop() {
 
       last_error = error;
 
-      left_speed = constrain(left_speed, 0, 178); // 130 perfect 150 -- 170 risky and 180 200 more risky
-      right_speed = constrain(right_speed, 0, 178); // 130 150 -- 170 risky and 180 200 more risky
+      left_speed = constrain(left_speed, 0, 166); // 130 perfect 150 -- 170 risky and 180 200 more risky -- 160 -> 11347 | 166 -> 11222/10973 time
+      right_speed = constrain(right_speed, 0, 166); // 130 150 -- 170 risky and 180 200 more risky
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
