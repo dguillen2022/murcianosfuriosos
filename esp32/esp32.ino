@@ -192,6 +192,13 @@ void loop() {
         mqttClient.print(get_json("STOP_LINE_SEARCH", -1, -1, -1.00));
         mqttClient.endMessage();
       }
+
+      String inlineValue = extractValue(recvBuff, "in_l");
+      if (inlineValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("VISIBLE_LINE", -1, -1, inlineValue.toFloat()));
+        mqttClient.endMessage();
+      }
       recvBuff = "";
     }
   }

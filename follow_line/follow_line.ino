@@ -44,6 +44,9 @@ int end_ = 0;
 int lost_line_ = 0;
 unsigned long start_time_ = 0;
 
+float total_reads_ = 0;
+float inline_reads_ = 0;
+
 uint32_t Color(uint8_t r, uint8_t g, uint8_t b)
 {
   return (((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
@@ -147,8 +150,9 @@ void loop() {
     analogWrite(PIN_Motor_PWMA, 0);
     analogWrite(PIN_Motor_PWMB, 0);
     if (end_ == 0) {
-      Serial.print("{ 'endl': " + String(millis() - start_time_) + " }");
       Serial.print("{ 'obst': " + String(ultraSound->getDistance()) + " }");
+      Serial.print("{ 'endl': " + String(millis() - start_time_) + " }");
+      Serial.print("{ 'in_l': " + String(inline_reads_/total_reads_ * 100) + " }");
       controller.remove(msg_sender);
       end_ = 1;
     }
@@ -168,11 +172,12 @@ void loop() {
 
       last_error = error;
 
-      left_speed = constrain(left_speed, 0, 168); // 130 perfect 150 -- 170 risky and 180 200 more risky -- 160 -> 11347 | 166 -> 11222/10973 time
+      left_speed = constrain(left_speed, 0, 168); // without op 166 -> 11222/10973 time | with op 167 --> 11448/1121 -- 168 --> 11040
       right_speed = constrain(right_speed, 0, 168); // 130 150 -- 170 risky and 180 200 more risky
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
+      inline_reads_++;
     } else if (left < VALUE_LINE && mid < VALUE_LINE && right < VALUE_LINE) { // Lost line movements
       FastLED.showColor(Color(255, 0, 0));
       if (lost_line_ == 0) {
@@ -191,8 +196,11 @@ void loop() {
     if (end_ == 1) {
       msg_sender->setStartTime(millis());
       controller.add(msg_sender);
+      total_reads_ = 0;
+      inline_reads_ = 0;
       start_ = 0;
     }
     end_ = 0;
+    total_reads_++;
   }
 }
