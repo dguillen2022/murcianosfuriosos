@@ -23,7 +23,7 @@
 #define KD 0.012 // Last 0.04 -- Perfect: 0.04 in class 0.08 another 0.053
 
 #define VEL_BASE 60
-#define MAX_VEL 60
+#define MAX_VEL 255
 #define MIN_VEL 30
 
 #define VALUE_LINE 400 // House 200 -- Labs 400
@@ -173,8 +173,8 @@ void loop() {
 
       last_error = error;
 
-      left_speed = constrain(left_speed, 0, 176); // without op 166 -> 11222/10973 time | with op 167 --> 11448/1121 -- 168 --> 11040
-      right_speed = constrain(right_speed, 0, 176); // 130 150 -- 170 risky and 180 200 more risky
+      left_speed = constrain(left_speed, 0, MAX_VEL); // without op 166 -> 11222/10973 time | with op 167 --> 11448/1121 -- 168 --> 11040
+      right_speed = constrain(right_speed, 0, MAX_VEL); // 130 150 -- 170 risky and 180 200 more risky
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
