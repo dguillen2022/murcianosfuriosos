@@ -35,8 +35,8 @@ const char broker[] = "193.147.79.118";
 int port = 21883;
 const char topic[]  = "/SETR/2024/9/";
 
-String teamName = "murcianosfuriosos";
-String teamID = "9";
+String teamName = "\"murcianosfuriosos\"";
+String teamID = "\"9\"";
 
 void advice_arduino(String msg) {
   while (1) {
@@ -53,8 +53,8 @@ void advice_arduino(String msg) {
 
 void initWiFi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(sshouse, password);
-  // WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
+  // WiFi.begin(sshouse, password);
+  WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
   // Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print('.');
@@ -127,11 +127,11 @@ void setup() {
   initMQTT();
 
   mqttClient.beginMessage(topic);
-  mqttClient.print(get_json("START_LAP", -1, -1, -1.00));
+  mqttClient.print(get_json("\"START_LAP\"", -1, -1, -1.00));
   mqttClient.endMessage();
 
   mqttClient.beginMessage(topic);
-  mqttClient.print(get_json("PING", 0, -1, -1.00));
+  mqttClient.print(get_json("\"PING\"", 0, -1, -1.00));
   mqttClient.endMessage();
 }
 
@@ -147,56 +147,63 @@ void loop() {
       String endlValue = extractValue(recvBuff, "endl");
       if (endlValue != "") {
         mqttClient.beginMessage(topic);
-        mqttClient.print(get_json("END_LAP", endlValue.toInt(), -1, -1.00));
+        mqttClient.print(get_json("\"END_LAP\"", endlValue.toInt(), -1, -1.00));
         mqttClient.endMessage();
       }
 
       String pingValue = extractValue(recvBuff, "ping");
       if (pingValue != "") {
         mqttClient.beginMessage(topic);
-        mqttClient.print(get_json("PING", pingValue.toInt(), -1, -1.00));
+        mqttClient.print(get_json("\"PING\"", pingValue.toInt(), -1, -1.00));
         mqttClient.endMessage();
       }
 
       String strlValue = extractValue(recvBuff, "strl");
       if (strlValue != "") {
         mqttClient.beginMessage(topic);
-        mqttClient.print(get_json("START_LAP", -1, -1, -1.00));
+        mqttClient.print(get_json("\"START_LAP\"", -1, -1, -1.00));
         mqttClient.endMessage();
       }
 
-      String lineValue = extractValue(recvBuff, "line");
-      if (lineValue != "") {
+      String linelValue = extractValue(recvBuff, "line");
+      if (linelValue != "") {
         mqttClient.beginMessage(topic);
-        mqttClient.print(get_json("LINE_LOST", -1, -1, -1.00));
+        mqttClient.print(get_json("\"LINE_LOST\"", -1, -1, -1.00));
+        mqttClient.endMessage();
+      }
+
+      String linefValue = extractValue(recvBuff, "foun");
+      if (linefValue != "") {
+        mqttClient.beginMessage(topic);
+        mqttClient.print(get_json("\"LINE_FOUND\"", -1, -1, -1.00));
         mqttClient.endMessage();
       }
 
       String obsValue = extractValue(recvBuff, "obst");
       if (obsValue != "") {
         mqttClient.beginMessage(topic);
-        mqttClient.print(get_json("OBSTACLE_DETECTED", -1, obsValue.toInt(), -1.00));
+        mqttClient.print(get_json("\"OBSTACLE_DETECTED\"", -1, obsValue.toInt(), -1.00));
         mqttClient.endMessage();
       }
 
       String lostValue = extractValue(recvBuff, "lost");
       if (lostValue != "") {
         mqttClient.beginMessage(topic);
-        mqttClient.print(get_json("INIT_LINE_SEARCH", -1, -1, -1.00));
+        mqttClient.print(get_json("\"INIT_LINE_SEARCH\"", -1, -1, -1.00));
         mqttClient.endMessage();
       }
 
       String findValue = extractValue(recvBuff, "find");
       if (findValue != "") {
         mqttClient.beginMessage(topic);
-        mqttClient.print(get_json("STOP_LINE_SEARCH", -1, -1, -1.00));
+        mqttClient.print(get_json("\"STOP_LINE_SEARCH\"", -1, -1, -1.00));
         mqttClient.endMessage();
       }
 
       String inlineValue = extractValue(recvBuff, "in_l");
       if (inlineValue != "") {
         mqttClient.beginMessage(topic);
-        mqttClient.print(get_json("VISIBLE_LINE", -1, -1, inlineValue.toFloat()));
+        mqttClient.print(get_json("\"VISIBLE_LINE\"", -1, -1, inlineValue.toFloat()));
         mqttClient.endMessage();
       }
       recvBuff = "";

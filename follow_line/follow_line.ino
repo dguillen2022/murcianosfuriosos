@@ -26,7 +26,7 @@
 #define MAX_VEL 60
 #define MIN_VEL 30
 
-#define VALUE_LINE 200 // House 200 -- Labs 400
+#define VALUE_LINE 400 // House 200 -- Labs 400
 
 CRGB leds[NUM_LEDS];
 ThreadController controller = ThreadController();
@@ -160,6 +160,7 @@ void loop() {
     if (left > VALUE_LINE || mid > VALUE_LINE || right > VALUE_LINE) { // In line movements
       FastLED.showColor(Color(0, 255, 0));
       if (lost_line_ == 1) {
+        Serial.print("{ 'foun': " + String(1) + " }"); // Send to the ESP32 Lost line
         Serial.print("{ 'find': " + String(1) + " }");
         lost_line_ = 0;
       }
@@ -172,8 +173,8 @@ void loop() {
 
       last_error = error;
 
-      left_speed = constrain(left_speed, 0, 168); // without op 166 -> 11222/10973 time | with op 167 --> 11448/1121 -- 168 --> 11040
-      right_speed = constrain(right_speed, 0, 168); // 130 150 -- 170 risky and 180 200 more risky
+      left_speed = constrain(left_speed, 0, 176); // without op 166 -> 11222/10973 time | with op 167 --> 11448/1121 -- 168 --> 11040
+      right_speed = constrain(right_speed, 0, 176); // 130 150 -- 170 risky and 180 200 more risky
 
       analogWrite(PIN_Motor_PWMA, right_speed);
       analogWrite(PIN_Motor_PWMB, left_speed);
@@ -181,10 +182,10 @@ void loop() {
     } else if (left < VALUE_LINE && mid < VALUE_LINE && right < VALUE_LINE) { // Lost line movements
       FastLED.showColor(Color(255, 0, 0));
       if (lost_line_ == 0) {
+        Serial.print("{ 'line': " + String(1) + " }"); // Send to the ESP32 Lost line
         Serial.print("{ 'lost': " + String(1) + " }");
         lost_line_ = 1;
       }
-      Serial.print("{ 'line': " + String(1) + " }"); // Send to the ESP32 Lost line
       if (last_error < 0) { // turn right
         analogWrite(PIN_Motor_PWMA, 200);
         analogWrite(PIN_Motor_PWMB, 0);
