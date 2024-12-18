@@ -19,11 +19,11 @@
 #define PIN_Motor_BIN_1 8
 #define PIN_Motor_PWMB 6 // Left motor
 
-#define KP 0.25 // Last 0.12 0.18 -- Perfect: 0.24 in class 0.01 another 0.0045
+#define KP 0.24 // Last 0.12 0.18 -- Perfect: 0.24 in class 0.01 another 0.0045
 #define KD 0.012 // Last 0.04 -- Perfect: 0.04 in class 0.08 another 0.053
 
 #define VEL_BASE 60
-#define MAX_VEL 255 // 176 perfect in class with 10779 -- House 255 and 9525
+#define MAX_VEL 200 // 176 perfect in class with 10779 -- House 255 and 9525
 #define MIN_VEL 30
 
 #define VALUE_LINE 350 // House 200 -- Labs 400
@@ -42,6 +42,7 @@ int last_error = 0;
 int start_ = 1;
 int end_ = 0;
 int lost_line_ = 0;
+int stop_ = 0;
 unsigned long start_time_ = 0;
 
 float total_reads_ = 0;
@@ -146,9 +147,10 @@ void loop() {
 
   float dist = ultraSound->getDistance();
 
-  if (ultraSound->getDistance() < 12 && ultraSound->getDistance() > 1) {
+  if (ultraSound->getDistance() < 12 && ultraSound->getDistance() > 1 || stop_ == 1) {
     analogWrite(PIN_Motor_PWMA, 0);
     analogWrite(PIN_Motor_PWMB, 0);
+    stop_ = 1;
     if (end_ == 0) {
       Serial.print("{ 'obst': " + String(ultraSound->getDistance()) + " }");
       Serial.print("{ 'endl': " + String(millis() - start_time_) + " }");
