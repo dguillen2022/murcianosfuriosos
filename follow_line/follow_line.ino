@@ -19,14 +19,14 @@
 #define PIN_Motor_BIN_1 8
 #define PIN_Motor_PWMB 6 // Left motor
 
-#define KP 0.24 // Last 0.12 0.18 -- Perfect: 0.24 in class 0.01 another 0.0045
+#define KP 0.25 // Last 0.12 0.18 -- Perfect: 0.24 in class 0.01 another 0.0045
 #define KD 0.012 // Last 0.04 -- Perfect: 0.04 in class 0.08 another 0.053
 
 #define VEL_BASE 60
-#define MAX_VEL 255
+#define MAX_VEL 255 // 176 perfect in class with 10779 -- House 255 and 9525
 #define MIN_VEL 30
 
-#define VALUE_LINE 400 // House 200 -- Labs 400
+#define VALUE_LINE 350 // House 200 -- Labs 400
 
 CRGB leds[NUM_LEDS];
 ThreadController controller = ThreadController();
@@ -187,11 +187,11 @@ void loop() {
         lost_line_ = 1;
       }
       if (last_error < 0) { // turn right
-        analogWrite(PIN_Motor_PWMA, 200);
+        analogWrite(PIN_Motor_PWMA, 255);
         analogWrite(PIN_Motor_PWMB, 0);
       } else { // turn left
         analogWrite(PIN_Motor_PWMA, 0);
-        analogWrite(PIN_Motor_PWMB, 200);
+        analogWrite(PIN_Motor_PWMB, 255);
       }
     }
     if (end_ == 1) {
